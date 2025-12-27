@@ -1,7 +1,7 @@
 import React from 'react';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import LoginScreen from '../screens/LoginScreen';
-import SignupScreen from '../screens/SignupScreen';
+import SignupScreen from '../screens/SignUpScreen';
 import { COLORS } from '../theme/colors';
 
 const Tab = createMaterialTopTabNavigator();
@@ -11,11 +11,14 @@ export default function AuthTabs() {
     <Tab.Navigator
       screenOptions={{
         tabBarStyle: {
-          backgroundColor: COLORS.background,
+          backgroundColor: COLORS.card,
+          borderRadius: 14,
+          marginBottom: 10,
         },
         tabBarIndicatorStyle: {
           backgroundColor: COLORS.primary,
           height: 3,
+          borderRadius: 3,
         },
         tabBarLabelStyle: {
           fontWeight: '600',
