@@ -6,7 +6,7 @@ import { COLORS } from '../theme/colors';
 
 const Tab = createMaterialTopTabNavigator();
 
-export default function AuthTabs() {
+export default function AuthTabs({ setIsLoggedIn }) {
   return (
     <Tab.Navigator
       screenOptions={{
@@ -28,7 +28,12 @@ export default function AuthTabs() {
         tabBarInactiveTintColor: COLORS.muted,
       }}
     >
-      <Tab.Screen name="Login" component={LoginScreen} />
+    <Tab.Screen name="Login">
+        {(props) => (
+          <LoginScreen {...props} setIsLoggedIn={setIsLoggedIn} />
+        )}
+      </Tab.Screen>
+
       <Tab.Screen name="Sign Up" component={SignupScreen} />
     </Tab.Navigator>
   );

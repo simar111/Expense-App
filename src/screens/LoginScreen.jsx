@@ -5,7 +5,11 @@ import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS } from '../theme/colors';
 
-export default function LoginScreen() {
+export default function LoginScreen({setIsLoggedIn}) {
+    const handleLogin = () => {
+    // TEMP: skip validation
+    setIsLoggedIn(true);
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View>
@@ -18,7 +22,7 @@ export default function LoginScreen() {
       <View style={styles.form}>
         <AuthInput placeholder="Email" keyboardType="email-address" />
         <AuthInput placeholder="Password" secureTextEntry />
-        <PrimaryButton title="Login" />
+        <PrimaryButton title="Login" onPress={handleLogin} />
       </View>
     </SafeAreaView>
   );

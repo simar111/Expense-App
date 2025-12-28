@@ -5,14 +5,14 @@ import AuthHeader from '../components/AuthHeader';
 import AuthTabs from '../navigation/AuthTabs';
 import { COLORS } from '../theme/colors';
 
-export default function AuthScreen() {
+export default function AuthScreen({ setIsLoggedIn }) {
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <AuthHeader />
 
         <View style={styles.tabsWrapper}>
-          <AuthTabs />
+          <AuthTabs setIsLoggedIn={setIsLoggedIn} />
         </View>
       </View>
     </SafeAreaView>
