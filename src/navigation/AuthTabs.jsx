@@ -34,7 +34,7 @@ export default function AuthTabs({ setIsLoggedIn }) {
         )}
       </Tab.Screen>
 
-      <Tab.Screen name="Sign Up" component={SignupScreen} />
+      <Tab.Screen name="Sign Up" component={SignupScreen} setIsLoggedIn={setIsLoggedIn}/>
     </Tab.Navigator>
   );
 }

@@ -1,29 +1,68 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet,Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS } from '../theme/colors';
+import api from '../services/api'
+import { useState } from 'react';
+export default function LoginScreen({ setIsLoggedIn }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-export default function LoginScreen({setIsLoggedIn}) {
-    const handleLogin = () => {
-    // TEMP: skip validation
-    setIsLoggedIn(true);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Email and password required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await api.post('/api/auth/login', {
+        email,
+        password,
+      });
+
+      // TEMP: assume success
+      if (res.data) {
+        console.warn(JSON.stringify(res))
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+       console.warn(JSON.stringify(error))
+      Alert.alert(
+        'Login Failed',
+        error?.response?.data?.message || 'Something went wrong'
+      );
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View>
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>
-          Login to manage your expenses smartly
-        </Text>
-      </View>
+      <Text style={styles.title}>Welcome Back</Text>
 
-      <View style={styles.form}>
-        <AuthInput placeholder="Email" keyboardType="email-address" />
-        <AuthInput placeholder="Password" secureTextEntry />
-        <PrimaryButton title="Login" onPress={handleLogin} />
-      </View>
+      <AuthInput
+        placeholder="Email"
+        keyboardType="email-address"
+        value={email}
+        onChangeText={setEmail}
+      />
+
+      <AuthInput
+        placeholder="Password"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <PrimaryButton
+        title={loading ? 'Logging in...' : 'Login'}
+        onPress={handleLogin}
+      />
     </SafeAreaView>
   );
 }
@@ -33,19 +72,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     padding: 20,
-    justifyContent: 'space-between',
   },
   title: {
-    fontSize: 30,
-    fontWeight: '700',
     color: COLORS.text,
-    marginTop: 40,
-  },
-  subtitle: {
-    color: COLORS.muted,
-    marginTop: 8,
-  },
-  form: {
-    marginBottom: 40,
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 30,
   },
 });

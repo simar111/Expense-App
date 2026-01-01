@@ -1,26 +1,93 @@
 import React from 'react';
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, StyleSheet, View ,Alert,ScrollView} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS } from '../theme/colors';
+import api from '../services/api'
+import { useState } from 'react';
+export default function SignupScreen({ setIsLoggedIn }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneno, setPhoneno] = useState('');
+  const [address, setAddress] = useState('');
+  const [dob, setDob] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-export default function SignupScreen() {
+  const handleSignup = async () => {
+    if (!name || !email || !phoneno || !address || !dob || !password) {
+      Alert.alert('Error', 'All fields are required');
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const res = await api.post('/api/auth/register', {
+        name,
+        email,
+        phoneno,
+        address,
+        dob,
+        password,
+      });
+
+      // TEMP: auto login after signup
+      if (res.data) {
+        setIsLoggedIn(true);
+      }
+    } catch (error) {
+      console.warn(error)
+      Alert.alert(
+        'Signup Failed',
+        error?.response?.data?.message || 'Something went wrong'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <View>
+      <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>
-          Start tracking your expenses today
-        </Text>
-      </View>
 
-      <View style={styles.form}>
-        <AuthInput placeholder="Full Name" />
-        <AuthInput placeholder="Email" keyboardType="email-address" />
-        <AuthInput placeholder="Password" secureTextEntry />
-        <PrimaryButton title="Sign Up" />
-      </View>
+        <AuthInput placeholder="Full Name" value={name} onChangeText={setName} />
+        <AuthInput
+          placeholder="Email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <AuthInput
+          placeholder="Phone Number"
+          keyboardType="phone-pad"
+          value={phoneno}
+          onChangeText={setPhoneno}
+        />
+        <AuthInput
+          placeholder="Address"
+          value={address}
+          onChangeText={setAddress}
+        />
+        <AuthInput
+          placeholder="Date of Birth (YYYY-MM-DD)"
+          value={dob}
+          onChangeText={setDob}
+        />
+        <AuthInput
+          placeholder="Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        <PrimaryButton
+          title={loading ? 'Creating account...' : 'Sign Up'}
+          onPress={handleSignup}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -30,19 +97,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
     padding: 20,
-    justifyContent: 'space-between',
   },
   title: {
-    fontSize: 30,
-    fontWeight: '700',
     color: COLORS.text,
-    marginTop: 40,
-  },
-  subtitle: {
-    color: COLORS.muted,
-    marginTop: 8,
-  },
-  form: {
-    marginBottom: 40,
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 20,
   },
 });
