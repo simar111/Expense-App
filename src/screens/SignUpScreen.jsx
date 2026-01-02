@@ -5,8 +5,14 @@ import AuthInput from '../components/AuthInput';
 import PrimaryButton from '../components/PrimaryButton';
 import { COLORS } from '../theme/colors';
 import api from '../services/api'
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform, Pressable } from 'react-native';
+
 import { useState } from 'react';
 export default function SignupScreen({ setIsLoggedIn }) {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+const [dobDate, setDobDate] = useState(null);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneno, setPhoneno] = useState('');
@@ -14,39 +20,53 @@ export default function SignupScreen({ setIsLoggedIn }) {
   const [dob, setDob] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+const onDateChange = (event, selectedDate) => {
+  setShowDatePicker(false);
+
+  if (selectedDate) {
+    setDobDate(selectedDate);
+
+    // Convert to YYYY-MM-DD
+    const isoDate = selectedDate.toISOString().split('T')[0];
+    setDob(isoDate);
+  }
+};
 
   const handleSignup = async () => {
-    if (!name || !email || !phoneno || !address || !dob || !password) {
-      Alert.alert('Error', 'All fields are required');
-      return;
+  if (!name || !email || !phoneno || !address || !dob || !password) {
+    Alert.alert('Error', 'All fields are required');
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await api.post('/api/auth/register', {
+      name,
+      email,
+      phoneno,
+      address,
+      dob: dob.trim(),
+      password,
+    });
+
+    if (res.data) {
+      setIsLoggedIn(true);
     }
+  } catch (error) {
+    console.log('ERROR DATA:', error?.response?.data);
+    console.log('ERROR STATUS:', error?.response?.status);
+    console.log('ERROR MESSAGE:', error?.message);
 
-    try {
-      setLoading(true);
+    Alert.alert(
+      'Signup Failed',
+      error?.response?.data?.message || 'Network error'
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const res = await api.post('/api/auth/register', {
-        name,
-        email,
-        phoneno,
-        address,
-        dob,
-        password,
-      });
-
-      // TEMP: auto login after signup
-      if (res.data) {
-        setIsLoggedIn(true);
-      }
-    } catch (error) {
-      console.warn(error)
-      Alert.alert(
-        'Signup Failed',
-        error?.response?.data?.message || 'Something went wrong'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -71,11 +91,24 @@ export default function SignupScreen({ setIsLoggedIn }) {
           value={address}
           onChangeText={setAddress}
         />
-        <AuthInput
-          placeholder="Date of Birth (YYYY-MM-DD)"
-          value={dob}
-          onChangeText={setDob}
-        />
+        <Pressable onPress={() => setShowDatePicker(true)}>
+  <AuthInput
+    placeholder="Date of Birth"
+    value={dob}
+    editable={false}
+  />
+</Pressable>
+
+{showDatePicker && (
+  <DateTimePicker
+    value={dobDate || new Date(2000, 0, 1)}
+    mode="date"
+    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+    onChange={onDateChange}
+    maximumDate={new Date()}
+  />
+)}
+
         <AuthInput
           placeholder="Password"
           secureTextEntry
