@@ -1,74 +1,104 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { COLORS } from '../../theme/colors';
-import MonthCard from '../../components/MonthCard'
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { PieChart, BarChart } from 'react-native-chart-kit';
+import { Dimensions } from 'react-native';
+import api from '../../services/api';
+import MonthCard from '../../components/MonthCard';
 import TransactionItem from '../../components/TransactionItem';
 
-const months = ['January', 'February', 'March'];
+const screenWidth = Dimensions.get('window').width;
 
-export default function HomeScreen({ navigation }) {
+export default function HomeScreen() {
+  const [transactions, setTransactions] = useState([]);
+  const [monthlyData, setMonthlyData] = useState({});
+  const [income, setIncome] = useState(0);
+  const [expense, setExpense] = useState(0);
+
+  const email = 'simar123@gmail.com'; // later from AsyncStorage
+
+ 
+
+  const fetchDashboard = async () => {
+    const res = await api.get(`/api/transactions?email=${email}`);
+    const monthRes = await api.get(`/api/transactions/summary/monthly?email=${email}`);
+
+    setTransactions(res.data);
+    setMonthlyData(monthRes.data);
+    calculateStats(res.data);
+  };
+ useEffect(() => {
+    fetchDashboard();
+  }, []);
+  const calculateStats = (data) => {
+    let inc = 0, exp = 0;
+    const currentMonth = new Date().getMonth();
+
+    data.forEach(t => {
+      if (new Date(t.date).getMonth() === currentMonth) {
+        t.type === 'income' ? inc += t.amount : exp += t.amount;
+      }
+    });
+
+    setIncome(inc);
+    setExpense(exp);
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.heading}>This Month</Text>
+    <ScrollView style={styles.container}>
+      <Text style={styles.heading}>This Month Summary</Text>
 
-      {/* Summary */}
-      <View style={styles.summary}>
-        <Text style={styles.amount}>₹24,500</Text>
-        <Text style={styles.muted}>Total spent</Text>
+      {/* SUMMARY */}
+      <View style={styles.summaryRow}>
+        <Text style={styles.income}>Income ₹{income}</Text>
+        <Text style={styles.expense}>Expense ₹{expense}</Text>
+        <Text style={styles.balance}>Balance ₹{income - expense}</Text>
       </View>
 
-      {/* Month History */}
-      <FlatList
-        data={months}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item}
-        renderItem={({ item }) => (
-          <MonthCard
-            month={item}
-            onPress={() => navigation.navigate('MonthDetail', { month: item })}
-          />
-        )}
+      {/* PIE CHART */}
+      <PieChart
+        data={[
+          { name: 'Income', amount: income, color: '#4CAF50', legendFontColor: '#fff' },
+          { name: 'Expense', amount: expense, color: '#F44336', legendFontColor: '#fff' },
+        ]}
+        width={screenWidth - 40}
+        height={220}
+        accessor="amount"
+        backgroundColor="transparent"
+        paddingLeft="20"
+        chartConfig={chartConfig}
       />
 
-      {/* Recent Transactions */}
+      {/* RECENT TRANSACTIONS */}
       <Text style={styles.subHeading}>Recent Transactions</Text>
+      {transactions.slice(0, 5).map(item => (
+        <TransactionItem key={item._id} item={item} />
+      ))}
 
-      <TransactionItem title="Food" amount="₹450" />
-      <TransactionItem title="Uber" amount="₹220" />
-    </SafeAreaView>
+      {/* MONTHS */}
+      <Text style={styles.subHeading}>Monthly History</Text>
+      {Object.keys(monthlyData).map(month => (
+        <MonthCard
+          key={month}
+          month={month}
+          data={monthlyData[month]}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
+const chartConfig = {
+  backgroundGradientFrom: '#1f2937',
+  backgroundGradientTo: '#1f2937',
+  color: () => '#fff',
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    padding: 20,
-  },
-  heading: {
-    color: COLORS.text,
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  summary: {
-    backgroundColor: COLORS.card,
-    padding: 20,
-    borderRadius: 16,
-    marginVertical: 20,
-  },
-  amount: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  muted: {
-    color: COLORS.muted,
-  },
-  subHeading: {
-    color: COLORS.text,
-    fontSize: 18,
-    marginVertical: 12,
-  },
+  container: { flex: 1, padding: 20 },
+  heading: { fontSize: 22, fontWeight: '700', marginBottom: 10 },
+  subHeading: { fontSize: 18, marginTop: 20 },
+  summaryRow: { marginBottom: 20 },
+  income: { color: '#4CAF50' },
+  expense: { color: '#F44336' },
+  balance: { color: '#3B82F6' },
 });

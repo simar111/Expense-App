@@ -1,34 +1,25 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
-import { COLORS } from '../theme/colors';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-export default function MonthCard({ month, amount = '₹0', onPress }) {
+export default function MonthCard({ month, data }) {
+  const navigation = useNavigation();
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
-      <View>
-        <Text style={styles.month}>{month}</Text>
-        <Text style={styles.amount}>{amount}</Text>
-      </View>
-    </TouchableOpacity>
+    <Pressable
+      style={styles.card}
+      onPress={() => navigation.navigate('MonthDetail', { month, data })}
+    >
+      <Text style={styles.month}>{month}</Text>
+      <Text style={styles.income}>Income ₹{data.income}</Text>
+      <Text style={styles.expense}>Expense ₹{data.expense}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: COLORS.card,
-    padding: 16,
-    borderRadius: 16,
-    marginRight: 12,
-    minWidth: 120,
-  },
-  month: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  amount: {
-    color: COLORS.muted,
-    marginTop: 6,
-    fontSize: 14,
-  },
+  card: { padding: 16, backgroundColor: '#1f2937', borderRadius: 12, marginBottom: 10 },
+  month: { fontSize: 18, fontWeight: '700' },
+  income: { color: '#4CAF50' },
+  expense: { color: '#F44336' },
 });
